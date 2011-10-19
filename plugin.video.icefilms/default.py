@@ -972,7 +972,7 @@ def MOVIEA2ZDirectories(url):
         addDir ('#1234',caturl+'1',setmode,os.path.join(art,'letters','1.png'))
 
         #Generate A-Z list and add directories for all letters.
-        A2Z=[chr(i) for i in xrange(ord('a'), ord('z')+1)]
+        A2Z=[chr(i) for i in xrange(ord('A'), ord('Z')+1)]
         for theletter in A2Z:
              addDir (theletter,caturl+theletter,setmode,os.path.join(art,'letters',theletter+'.png'))
 
