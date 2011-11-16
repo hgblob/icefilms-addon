@@ -826,7 +826,7 @@ def DoEpListSearch(search):
                match=re.compile('<h3 class="r"><a href="'+tvurl+'(.+?)"(.+?)">(.+?)</h3>').findall(link)
                
                for myurl,interim,name in match:
-                    if len(interim) < 80:
+                    if len(interim) < 180:
                          name=CLEANSEARCH(name)                              
                          hasnameintitle=re.search(search,name,re.IGNORECASE)
                          if hasnameintitle is not None:
@@ -1209,7 +1209,7 @@ def LOADMIRRORS(url):
 
      #---------------End phantom metadata getting stuff --------------
 
-     match=re.compile('/membersonly/components/com_iceplayer/(.+?)" width=').findall(link)
+     match=re.compile('/membersonly/components/com_iceplayer/(.+?img=).*?" width=').findall(link)
      match[0]=re.sub('%29',')',match[0])
      match[0]=re.sub('%28','(',match[0])
      for url in match:
@@ -1613,7 +1613,7 @@ def WaitIf():
 
 #Quick helper function used to strip characters that are invalid for Windows filenames/folders
 def Clean_Windows_String(string):
-     return re.sub('[^-a-zA-Z0-9_.()\\\ ]+', '',  string)
+     return re.sub('[^-a-zA-Z0-9_.()\\\/ ]+', '',  string)
 
 
 def Get_Path(srcname,vidname):
@@ -2034,8 +2034,6 @@ def addDir(name, url, mode, iconimage, metainfo=False, imdb=False, delfromfav=Fa
     if total is not False:
         ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=u, listitem=liz, isFolder=True, totalItems=int(total))
     return ok
-
-
      
 
 #VANILLA ADDDIR (kept for reference)
