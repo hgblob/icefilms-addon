@@ -743,10 +743,10 @@ def ICEHOMEPAGE(url):
 
 def RECENT(url):
         link=GetURL(url)
-        homepage=re.compile('<h1>Recently Added</h1>(.+?)<h1>Statistics</h1>').findall(link)
+        homepage=re.compile('<h1>Recently Added</h1>(.+?)<h1>Statistics</h1>', re.DOTALL).findall(link)
         for scrape in homepage:
                 scrape='<h1>Recently Added</h1>'+scrape+'<h1>Statistics</h1>'
-                recadd=re.compile('<h1>Recently Added</h1>(.+?)<h1>Latest Releases</h1>').findall(scrape)
+                recadd=re.compile('<h1>Recently Added</h1>(.+?)<h1>Latest Releases</h1>', re.DOTALL).findall(scrape)
                 for scraped in recadd:
                         mirlinks=re.compile('<a href=(.+?)>(.+?)</a>').findall(scraped)
                         for url,name in mirlinks:
@@ -756,10 +756,10 @@ def RECENT(url):
     
 def LATEST(url):
         link=GetURL(url)
-        homepage=re.compile('<h1>Recently Added</h1>(.+?)<h1>Statistics</h1>').findall(link)
+        homepage=re.compile('<h1>Recently Added</h1>(.+?)<h1>Statistics</h1>', re.DOTALL).findall(link)
         for scrape in homepage:
                 scrape='<h1>Recently Added</h1>'+scrape+'<h1>Statistics</h1>'
-                latrel=re.compile('<h1>Latest Releases</h1>(.+?)<h1>Being Watched Now</h1>').findall(scrape)
+                latrel=re.compile('<h1>Latest Releases</h1>(.+?)<h1>Being Watched Now</h1>', re.DOTALL).findall(scrape)
                 for scraped in latrel:
                         mirlinks=re.compile('<a href=(.+?)>(.+?)</a>').findall(scraped)
                         for url,name in mirlinks:
@@ -769,10 +769,10 @@ def LATEST(url):
 
 def WATCHINGNOW(url):
         link=GetURL(url)
-        homepage=re.compile('<h1>Recently Added</h1>(.+?)<h1>Statistics</h1>').findall(link)
+        homepage=re.compile('<h1>Recently Added</h1>(.+?)<h1>Statistics</h1>', re.DOTALL).findall(link)
         for scrape in homepage:
                 scrapy='<h1>Recently Added</h1>'+scrape+'<h1>Statistics</h1>'
-                watnow=re.compile('<h1>Being Watched Now</h1>(.+?)<h1>Statistics</h1>').findall(scrapy)
+                watnow=re.compile('<h1>Being Watched Now</h1>(.+?)<h1>Statistics</h1>', re.DOTALL).findall(scrapy)
                 for scraped in watnow:
                         mirlinks=re.compile('href=(.+?)>(.+?)</a>').findall(scraped)
                         for url,name in mirlinks:
