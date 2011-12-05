@@ -748,7 +748,7 @@ def RECENT(url):
                 scrape='<h1>Recently Added</h1>'+scrape+'<h1>Statistics</h1>'
                 recadd=re.compile('<h1>Recently Added</h1>(.+?)<h1>Latest Releases</h1>', re.DOTALL).findall(scrape)
                 for scraped in recadd:
-                        mirlinks=re.compile('<a href=(.+?)>(.+?)</a>').findall(scraped)
+                        mirlinks=re.compile('<a href=/(.+?)>(.+?)</a>').findall(scraped)
                         for url,name in mirlinks:
                                 url=iceurl+url
                                 name=CLEANUP(name)
@@ -761,7 +761,7 @@ def LATEST(url):
                 scrape='<h1>Recently Added</h1>'+scrape+'<h1>Statistics</h1>'
                 latrel=re.compile('<h1>Latest Releases</h1>(.+?)<h1>Being Watched Now</h1>', re.DOTALL).findall(scrape)
                 for scraped in latrel:
-                        mirlinks=re.compile('<a href=(.+?)>(.+?)</a>').findall(scraped)
+                        mirlinks=re.compile('<a href=/(.+?)>(.+?)</a>').findall(scraped)
                         for url,name in mirlinks:
                                 url=iceurl+url
                                 name=CLEANUP(name)
@@ -774,7 +774,7 @@ def WATCHINGNOW(url):
                 scrapy='<h1>Recently Added</h1>'+scrape+'<h1>Statistics</h1>'
                 watnow=re.compile('<h1>Being Watched Now</h1>(.+?)<h1>Statistics</h1>', re.DOTALL).findall(scrapy)
                 for scraped in watnow:
-                        mirlinks=re.compile('href=(.+?)>(.+?)</a>').findall(scraped)
+                        mirlinks=re.compile('href=/(.+?)>(.+?)</a>').findall(scraped)
                         for url,name in mirlinks:
                                 url=iceurl+url
                                 name=CLEANUP(name)
