@@ -1714,10 +1714,10 @@ def do_wait(account):
           return handle_wait(1,'Megaupload','Loading video with your *Premium* account.')
 
      elif account == 'free':
-          return handle_wait(26,'Megaupload Free User','Loading video with your free account.')
+          return handle_wait(61,'Megaupload Free User','Loading video with your free account.')
 
      elif account == 'none':
-          return handle_wait(46,'Megaupload','Loading video.')
+          return handle_wait(61,'Megaupload','Loading video.')
     
 
 
