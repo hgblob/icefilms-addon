@@ -102,9 +102,15 @@ class megaupload:
 
              logincheck=self.check_login(source)
 
+             #if free user, get the wait time
+             if logincheck in ('free', 'none'):
+                 wait_time = self.get_wait_time(source)
+             else:
+                 wait_time = 1
+
         filename=self._get_filename(filelink)
         
-        return filelink,filename,megavidlink,logincheck
+        return filelink,filename,megavidlink,logincheck, wait_time
 
 
    def load_pagesrc(self,url,disable_cookies=False):
@@ -124,16 +130,14 @@ class megaupload:
         #returns 'free' or 'premium' if logged in
         #returns 'none' if not logged in
  
-        login = re.search('<div class="user_info">Welcome <', source)
-        premium = re.search('<div class="stars_3"></div>', source)
-
-        if login is not None:
-             if premium is not None:
-                  return 'premium'
-             elif premium is None:
-                  return 'free'
-        elif login is None:
-             return 'none'
+        if re.search('<div class="crown"></div>', source):
+            return 'platinum'
+        elif re.search('<div class="stars_', source):
+            return 'premium'
+        elif re.search('<div class="user_info">Welcome <', source):
+            return 'free'
+        else:
+            return 'none'
 
  
    def dls_limited(self):
@@ -225,6 +229,11 @@ class megaupload:
                     return url
 
 
+   def get_wait_time(self, source):
+       wait_time = re.compile('count=([0-9]+);').findall(source)
+       return wait_time[0]
+
+
    def _get_filename(self,url=False,source=False):
         #accept either source or url
         if url is False:
@@ -294,7 +303,7 @@ def __doLogin(baseurl, cookiepath, username, password):
 
 		login = new_check_login(source)
 
-		if login == 'free' or login == 'premium':
+		if login in ('free', 'premium', 'platinum'):
 			cj.save(cookiepath)
 
                         return login
@@ -306,16 +315,14 @@ def new_check_login(source):
 		#returns 'free' or 'premium' if logged in
 		#returns 'none' if not logged in
 
-		login = re.search('Welcome', source)
-		premium = re.search('flashvars.status = "premium";', source)		
-
-		if login is not None:
-			if premium is not None:
-				return 'premium'
-			elif premium is None:
-				return 'free'
-		elif login is None:
-			return None
+    if re.search('<div class="crown"></div>', source):
+        return 'platinum'
+    elif re.search('<div class="stars_', source):
+        return 'premium'
+    elif re.search('<div class="user_info">Welcome <', source):
+        return 'free'
+    else:
+        return 'none'
 
 # --------------- End dirty backport of the new non-mechanize login code. ----------------
 

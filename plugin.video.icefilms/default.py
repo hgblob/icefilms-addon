@@ -329,7 +329,7 @@ def Zip_DL_and_Install(url,dbtype,installtype):
                #if zip does not already exist, download from url, with nice display name.
                if filepath_exists==False:
 
-                    do_wait(thefile[3])
+                    do_wait(thefile[3], thefile[4])
                     
                     print 'downloading zip'
                     
@@ -1708,16 +1708,19 @@ def Item_Meta(name):
           return listitem
 
 
-def do_wait(account):
+def do_wait(account, wait_time):
 
-     if account == 'premium':
-          return handle_wait(1,'Megaupload','Loading video with your *Premium* account.')
+     if account == 'platinum':    
+          return handle_wait(int(wait_time),'Megaupload','Loading video with your *Platinum* account.')
+          
+     elif account == 'premium':
+          return handle_wait(int(wait_time),'Megaupload','Loading video with your *Premium* account.')
 
      elif account == 'free':
-          return handle_wait(61,'Megaupload Free User','Loading video with your free account.')
+          return handle_wait(int(wait_time),'Megaupload Free User','Loading video with your free account.')
 
-     elif account == 'none':
-          return handle_wait(61,'Megaupload','Loading video.')
+     else:
+          return handle_wait(int(wait_time),'Megaupload','Loading video.')
     
 
 
@@ -1761,7 +1764,7 @@ def Handle_Vidlink(url):
           mu=megaroutines.megaupload(translatedicedatapath)
           link=mu.resolve_megaup(url)
 
-          finished = do_wait(link[3])
+          finished = do_wait(link[3], link[4])
 
           if finished == True:
                return link
