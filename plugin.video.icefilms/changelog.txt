@@ -1,3 +1,26 @@
+v1.0.19 (Wednesday, 21 December 2011):
+  - Added automatic MegaUpload wait time check for free user accounts
+  - Added MegaUpload Platinum user support
+
+v1.0.18 (Monday, 05 December 2011):
+  - Small fix for those receiving 409 errors on Home Page categories
+  - Fixes for MegaUpload site changes, new login check and 60 second wait time for free user accounts
+
+v1.0.17 (Monday, 21 November 2011):
+  - Home page categories fix for recent site html change
+  - Fix for music section throwing script error - cookie was not found
+  - Added forward slash '/' to list of allowed characters in download folder/file names
+  - Search update to allow more results (spoyser)
+  
+v1.0.16 (Wednesday, 19 October 2011):
+  - Quick fix to correct screwup on a-z listings
+
+v1.0.15 (Wednesday, 19 October 2011):
+  - Fixed TV Show download errors - extra space in season name from previous fixed caused invalid folder names in Windows
+  - Fixed bad Windows folders/filenames due to invalid characters
+  - put try/except block on a piece of code in LOADMIRRORS that was causing a script error when sources could not be loaded
+  - lower cased two icons for letter m and g, they were uppercase and would not show on XBMC Live due to case sensitivity, changed code to use lower case letters
+
 v1.0.14 (Sunday, 09 October 2011):
   - correct issues with Colbert Report, Daily Show and others not showing all seasons
 v1.0.13 (Saturday, 08 October 2011):
