@@ -1,3 +1,6 @@
+v1.0.20 (Wednesday, 21 December 2011):
+  - Bug fix for premium/platinum acts with direct downloads turned on
+  
 v1.0.19 (Wednesday, 21 December 2011):
   - Added automatic MegaUpload wait time check for free user accounts
   - Added MegaUpload Platinum user support
