@@ -77,6 +77,9 @@ class megaupload:
         #bring together all the functions into a simple user-friendly function.
 
         source=self.load_pagesrc(url)
+        
+        #initialize wait time, assume it's 1 (platinum/premium acts with direct download turned on
+        wait_time = 1
 
         #if source is a url (from a Direct Downloads re-direct) not pagesource
         if source.startswith('http://'):
@@ -105,8 +108,6 @@ class megaupload:
              #if free user, get the wait time
              if logincheck in ('free', 'none'):
                  wait_time = self.get_wait_time(source)
-             else:
-                 wait_time = 1
 
         filename=self._get_filename(filelink)
         
