@@ -232,7 +232,10 @@ class megaupload:
 
    def get_wait_time(self, source):
        wait_time = re.compile('count=([0-9]+);').findall(source)
-       return wait_time[0]
+       if len(wait_time):
+         return wait_time[0]
+       else:
+         return 1
 
 
    def _get_filename(self,url=False,source=False):
