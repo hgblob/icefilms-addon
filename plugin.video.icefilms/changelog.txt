@@ -1,3 +1,6 @@
+v1.0.21 (Monday, 2 January 2012):
+  - Fix for MegaUpload removing (temporarily?) wait time on free accounts
+
 v1.0.20 (Wednesday, 21 December 2011):
   - Bug fix for premium/platinum acts with direct downloads turned on
   
