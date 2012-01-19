@@ -1351,7 +1351,7 @@ def Add_Multi_Parts(name,url,icon):
 
 
 
-def PART(scrap,sourcenumber,args,cookie,hide2shared,megapic,shared2pic):
+def PART(scrap,sourcenumber,args,cookie,megapic,shared2pic):
      #check if source exists
      sourcestring='Source #'+sourcenumber
      checkforsource = re.search(sourcestring, scrap)
@@ -1382,7 +1382,7 @@ def PART(scrap,sourcenumber,args,cookie,hide2shared,megapic,shared2pic):
                               partname='Part '+partnum
                               fullname=sourcestring+' | MU | '+partname
                               Add_Multi_Parts(fullname,url,megapic)
-                        elif is2shared is not None and hide2shared == 'false':
+                        elif is2shared is not None:
                               partname='Part '+partnum
                               fullname=sourcestring+' | 2S  | '+partname
                               Add_Multi_Parts(fullname,url,shared2pic)
@@ -1401,7 +1401,7 @@ def PART(scrap,sourcenumber,args,cookie,hide2shared,megapic,shared2pic):
                          # print 'Source #'+sourcenumber+' is hosted by megaupload'
                          fullname=sourcestring+' | MU | Full'
                          addExecute(fullname,url,200,megapic)
-                    elif is2shared is not None and hide2shared == 'false':
+                    elif is2shared is not None:
                          # print 'Source #'+sourcenumber+' is hosted by 2shared' 
                          fullname=sourcestring+' | 2S  | Full'
                          addExecute(fullname,url,200,shared2pic)
@@ -1426,7 +1426,6 @@ def SOURCE(page, sources):
           # check for sources containing multiple parts or just one part
           # get settings
           selfAddon = xbmcaddon.Addon(id='plugin.video.icefilms')
-          hide2shared = selfAddon.getSetting('hide-2shared')
           megapic=handle_file('megapic','')
           shared2pic=handle_file('shared2pic','')
 
@@ -1473,7 +1472,7 @@ def SOURCE(page, sources):
           #...so it's not as CPU intensive as you might think.
 
           for thenumber in numlist:
-               PART(sources,thenumber,args,cookie,hide2shared,megapic,shared2pic)
+               PART(sources,thenumber,args,cookie,megapic,shared2pic)
 
            
 def DVDRip(url):
@@ -1518,52 +1517,22 @@ class TwoSharedDownloader:
           htmlSource = response.read()
      
           # Search the source for link to the video and store it for later use
-          match = self.re2sUrl.search(htmlSource)
-          fileUrl = match.group(0)
-          
-          # Extract the cookies set by visiting the 2Shared page
-          cookies = cookielib.CookieJar()
-          cookies.extract_cookies(response, request)
-          
-          # Format the cookies so they can be used in XBMC
-          for item in cookies._cookies['.2shared.com']['/']:
-               self.cookieString += str(item) + "=" + str(cookies._cookies['.2shared.com']['/'][item].value) + "; "
-               self.cookieString += "WWW_JSESSIONID=" + str(cookies._cookies['www.2shared.com']['/']['JSESSIONID'].value)
-
-          # Arrange the spoofed header string in a format XBMC can read
-          headers = urllib.quote("User-Agent=Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)|Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8|Accept-Language=en-us,en;q=0.5|Accept-Encoding=gzip,deflate|Accept-Charset=ISO-8859-1,utf-8;q=0.7,*;q=0.7|Keep-Alive=115|Referer=" + pageUrl + "|Cookie=" + self.cookieString)
-          
-          # Append the header string to the file URL
-          pathToPlay = fileUrl + "?" + headers
+          match = re.compile('">(.+?)</div>').findall(htmlSource)
+          fileUrl = match[0]
           
           # Return the valid link
-          return pathToPlay 
+          return fileUrl 
      
-
-     
-          
+              
 def SHARED2_HANDLER(url):
           downloader2Shared = TwoSharedDownloader()
           vidFile = downloader2Shared.returnLink(url)
-          #vidFile = TwoSharedDownloader.returnLink(url)
-          
-          print str(vodFile)
-          match=re.compile('http\:\/\/(.+?)\.dc1').findall(vidFile)
-          for urlbulk in match:
-               finalurl='http://'+urlbulk+'.avi'
-               print '2Shared Direct Link: '+finalurl
-               return finalurl
-          #req = urllib2.Request(url)
-          #req.add_header('User-Agent', USER_AGENT)
-          #req.add_header('Referer', url)
-          #jar = cookielib.FileCookieJar("cookies")
-          #opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-          #response = opener.open(req)
-          #link=response.read()
-          #response.close()
-          #dirlink=re.compile("window.location ='(.+?)';").findall(link)
-          #for surl in dirlink:
-          #    return surl
+
+          print '2Shared Direct Link: '+vidFile
+          finalUrl = [1]
+          finalUrl[0] = vidFile
+          return finalUrl
+
 
 def GetURL(url, params = None, referrer = ICEFILMS_REFERRER, cookie = None, save_cookie = False):
      # print 'GetUrl: ' + url
@@ -1772,10 +1741,8 @@ def Handle_Vidlink(url):
                return None
 
      elif is2shared is not None:
-          Notify('big','2Shared','2Shared is not supported by this addon. (Yet)','')
-          return False
-          #shared2url=SHARED2_HANDLER(url)
-          #return shared2url
+          shared2url=SHARED2_HANDLER(url)
+          return shared2url
 
 
 def Stream_Source(name,url):
