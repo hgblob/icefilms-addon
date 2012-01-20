@@ -370,13 +370,13 @@ def Startup_Routines(selfAddon):
      DLDirStartup(selfAddon)
 
      # Run the login startup routines
-     LoginStartup(selfAddon)
+     #LoginStartup(selfAddon)
      
 
      # Run the container checking startup routines, if enable meta is set to true
      EnableMeta = selfAddon.getSetting('use-meta')
-     if EnableMeta=='true':
-          ContainerStartup(selfAddon)
+     #if EnableMeta=='true':
+     #     ContainerStartup(selfAddon)
 
 def CATEGORIES():  #  (homescreen of addon)
           #get settings

@@ -1,3 +1,7 @@
+v1.0.23 (Friday, 20 January 2012):
+  - Disabled (temporarily) MegaUpload login check on startup
+  - Disabled (temporarily) metadata install on startup
+  
 v1.0.22 (Thursday, 19 January 2012):
   - Enabled 2Shared links
   
