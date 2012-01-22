@@ -20,6 +20,8 @@ from xgoogle.search import GoogleSearch
 from mega import megaroutines
 from metautils import metahandlers
 
+import threading
+
 def getSiteURL():
      ao = xbmcaddon.Addon(id='plugin.video.icefilms')
      url = ao.getSetting('icefilms-url')
@@ -1346,7 +1348,7 @@ def Add_Multi_Parts(name,url,icon):
      #StackMulti=='false'
      #if StackMulti=='true':
      #save list of urls to later be stacked when user selects part
-          addExecute(name,url,200,icon)
+          addExecute(name,url,get_default_action(),icon)
 
      #elif StackMulti=='false':
      #     addExecute(name,url,200,icon)
@@ -1895,6 +1897,127 @@ def QuietDownload(url, dest):
                 raise 
         return 'downloaded' 
          
+class DownloadThread (threading.Thread):
+    def __init__(self, url, dest, vidname=False):
+        self.url = url
+        self.dest = dest
+        self.vidname = vidname
+        self.dialog = None
+        
+        # it looks like a new python interpreter is spawn so cannot talk to the download thread 
+        # during another plugin command. 
+        # initially, I used files, but then decided to use environment variables to communicate with 
+        # the thread, which seems cleaner but still blows ...
+        
+        #get the thread id which will be used by the plugin to communicate with the thread
+        self.tid = "0"
+        if not "IFDL_CNTR" in os.environ:
+          os.environ["IFDL_CNTR"] = self.tid
+        else:
+          self.tid = os.environ["IFDL_CNTR"]
+        os.environ["IFDL_CNTR"] = str(int(self.tid) + 1)
+        #set up other environment varialbes
+        os.environ["IFDL_ShowDLInfo"+self.tid] = "0"
+        os.environ["IFDL_StopDL"+self.tid] = "0"
+
+        threading.Thread.__init__(self)
+        
+    def run(self):
+        #save the thread id to a .tid file. This file can then be read if the user navigates away from the 
+        #download info page to get the thread ID again and generate the download info links
+        #the tid file will also denote a download in progress
+        #Note: if xbmc is killed during a download, the tid file will remain, therefore:
+        #TODO: add remove incomplete download link
+        save(self.dest+'.tid', self.tid)
+
+        #get settings
+        selfAddon = xbmcaddon.Addon(id='plugin.video.icefilms')
+          
+        DeleteIncomplete=selfAddon.getSetting('delete-incomplete-downloads')
+        start_time = time.time() 
+        try: 
+            urllib.urlretrieve(self.url, self.dest, lambda nb, bs, fs: _dlhook(nb, bs, fs, self, start_time)) 
+            #Download is done so remove tid file
+            try:
+              os.remove(self.dest+'.tid')
+            except:
+              pass
+        except:
+            #download is killed so remove tid file
+            try:
+              os.remove(self.dest+'.tid')
+            except:
+              pass
+            
+            if DeleteIncomplete == 'true':
+                 #delete partially downloaded file if setting says to.
+                 while os.path.exists(self.dest): 
+                     try: 
+                         os.remove(self.dest) 
+                         break 
+                     except: 
+                          pass 
+            if sys.exc_info()[0] in (urllib.ContentTooShortError, StopDownloading, OSError): 
+                xbmcgui.Dialog().ok('Download Canceled!', self.vidname, 'was canceled')
+                return 'false' 
+            else: 
+                raise 
+        #finally and except is not supported in the same try until 2.5 ... currently xbmc runs 2.4
+        #TODO: use the following when xbmc moves to 2.5 and higher:
+        #finally:
+            ##remove tid file
+            #try:
+              #os.remove(self.dest+'.tid')
+            #except:
+              #pass
+            
+        return 'downloaded'
+        
+    def show_dialog(self):
+      print "show_dialog()"
+      self.dialog = xbmcgui.DialogProgress()
+      self.dialog.create('Downloading', '', self.vidname)
+    
+    def hide_dialog(self):
+      print "hide_dialog()"
+      os.environ["IFDL_ShowDLInfo"+self.tid] = "0"
+      self.dialog.close() 
+      self.dialog = None
+      
+
+def Download_And_Play(name,url):
+
+     #get proper name of vid                                                                                                           
+     vidname=handle_file('videoname','open')
+
+     mypath=Get_Path(name,vidname)
+     
+     print 'MYPATH: ',mypath
+     if mypath is 'path not set':
+          Notify('Download Alert','You have not set the download folder.\n Please access the addon settings and set it.','','')
+
+     else:
+          if os.path.isfile(mypath) is True:
+               if os.path.isfile(mypath+'.tid'):
+                 #add download controls for the existing download thread
+                 addDownloadControls(name,mypath,openfile(mypath+'.tid'))
+               else:
+                 Notify('Download Alert','The video you are trying to download already exists!','','')
+          else:
+               link=Handle_Vidlink(url)
+               print 'attempting to download and play file'
+               try:
+                print "Starting Download Thread"
+                dlThread = DownloadThread(link[0], mypath, vidname)
+                dlThread.start()
+                handle_wait(5, "Buffering", "Waiting a bit before playing...")
+                addDownloadControls(name,mypath,dlThread.tid)
+                xbmc.Player().play(mypath)
+               except:
+                   print 'download failed'
+
+
+
 
 def _pbhook(numblocks, blocksize, filesize, dp, start_time):
         try: 
@@ -1928,7 +2051,34 @@ def _pbhook(numblocks, blocksize, filesize, dp, start_time):
             dp.close() 
             raise StopDownloading('Stopped Downloading')
 
-   
+def _dlhook(numblocks, blocksize, filesize, dt, start_time):
+      if dt.dialog != None:
+        try: 
+          percent = min(numblocks * blocksize * 100 / filesize, 100)
+          currently_downloaded = float(numblocks) * blocksize / (1024 * 1024)
+          kbps_speed = numblocks * blocksize / (time.time() - start_time)
+          if kbps_speed > 0: 
+            eta = (filesize - numblocks * blocksize) / kbps_speed 
+          else: 
+            eta = 0 
+          kbps_speed = kbps_speed / 1024 
+          total = float(filesize) / (1024 * 1024) 
+          mbs = '%.02f MB of %.02f MB' % (currently_downloaded, total) 
+          e = 'Speed: %.02f Kb/s ' % kbps_speed 
+          e += 'ETA: %02d:%02d' % divmod(eta, 60) 
+          dt.dialog.update(percent, mbs, e)
+        except: 
+          percent = 100 
+          dt.dialog.update(percent) 
+        if dt.dialog.iscanceled():
+          dt.hide_dialog()
+      elif os.environ["IFDL_ShowDLInfo"+dt.tid] == "1":
+        print "Dialog does not exist, environment variable exists ... Showing Info Dialog"
+        dt.show_dialog()
+      elif os.environ["IFDL_StopDL"+dt.tid] == "1":
+        print "Stopping download"
+        raise StopDownloading('Stopped Downloading')
+
 def addExecute(name,url,mode,iconimage):
 
     # A list item that executes the next mode, but does'nt clear the screen of current list items.
@@ -1947,14 +2097,65 @@ def addExecute(name,url,mode,iconimage):
     contextMenuItems = []
 
     contextMenuItems.append(('Download', 'XBMC.RunPlugin(%s?mode=201&name=%s&url=%s)' % (sys.argv[0], sysname, sysurl)))
+    contextMenuItems.append(('Download And Watch', 'XBMC.RunPlugin(%s?mode=204&name=%s&url=%s)' % (sys.argv[0], sysname, sysurl)))
     contextMenuItems.append(('Download with jDownloader', 'XBMC.RunPlugin(plugin://plugin.program.jdownloader/?action=addlink&url=%s)' % (sysurl)))
     contextMenuItems.append(('Check Mega Limits', 'XBMC.RunPlugin(%s?mode=202&name=%s&url=%s)' % (sys.argv[0], sysname, sysurl)))
     contextMenuItems.append(('Kill Streams', 'XBMC.RunPlugin(%s?mode=203&name=%s&url=%s)' % (sys.argv[0], sysname, sysurl)))
 
     liz.addContextMenuItems(contextMenuItems, replaceItems=True)
+    
+    folder=False
+    if mode == 204:
+      folder=True
 
     ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=False)
     return ok
+    
+def addLocal(name,filename):
+    ok=True
+
+    liz=xbmcgui.ListItem(name)
+    liz.setInfo( type="Video", infoLabels={ "Title": name } )
+
+    ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=filename,listitem=liz,isFolder=False)
+    return ok
+    
+def addDownloadControls(name,localFilePath,tid):
+    #encode name
+    sysname = urllib.quote_plus(name)
+    
+    statusUrl = sys.argv[0] + "?mode=205&name=" + sysname + "&tid=" + tid
+    cancelUrl = sys.argv[0] + "?&mode=206&name=" + sysname + "&tid=" + tid
+    ok = True
+    
+    #add Download info
+    ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=statusUrl,listitem=xbmcgui.ListItem("Download Info"),isFolder=False)
+    
+    #add Play File
+    ok = ok and addLocal("Play File",localFilePath)
+    
+    #add Cancel Download
+    ok = ok and xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=cancelUrl,listitem=xbmcgui.ListItem("Cancel Download"),isFolder=False)
+    
+    return ok
+
+def ShowDownloadInfo(tid,name):
+  print "ShowDownloadInfo()"
+  vidname=handle_file('videoname','open')
+  mypath=Get_Path(name,vidname)+'.tid'
+  if not os.path.exists(mypath):
+    xbmcgui.Dialog().ok('Download Inactive!', 'Download is not active')
+  os.environ["IFDL_ShowDLInfo"+tid] = "1"  
+  return True
+  
+def CancelDownload(tid,name):
+  print "CancelDownload()"
+  vidname=handle_file('videoname','open')
+  mypath=Get_Path(name,vidname)+'.tid'
+  if not os.path.exists(mypath):
+    xbmcgui.Dialog().ok('Download Inactive!','Download is not active')
+  os.environ["IFDL_StopDL"+tid] = "1"  
+  return True
 
 
 def addDir(name, url, mode, iconimage, metainfo=False, imdb=False, delfromfav=False, total=False, disablefav=False):
@@ -2092,12 +2293,25 @@ def get_params():
                                 param[splitparams[0]]=splitparams[1]
                                 
         return param
+        
+def get_default_action():
+  action_setting = xbmcaddon.Addon(id='plugin.video.icefilms').getSetting('play-action')
+  
+  print "action_setting =" + action_setting 
+  if action_setting == "1":
+    return 201
+  elif action_setting == "2":
+    return 204
+    
+  #default is stream
+  return 200
 
 params=get_params()
 url=None
 name=None
 mode=None
 imdbnum=None
+tid="-1"
 
 try:
         url=urllib.unquote_plus(params["url"])
@@ -2115,6 +2329,12 @@ try:
         mode=int(params["mode"])
 except:
         pass
+try:
+        tid=params["tid"]
+except:
+        pass
+
+    
 
 
 print '==========================PARAMS:\nURL: %s\nNAME: %s\nMODE: %s\nIMDBNUM: %s\nMYHANDLE: %s\nPARAMS: %s' % ( url, name, mode, imdbnum, sys.argv[1], params )
@@ -2295,6 +2515,15 @@ elif mode==202:
 
 elif mode==203:
         Kill_Streaming(name,url)
+
+elif mode==204:
+        Download_And_Play(name,url)
+
+elif mode==205:
+        ShowDownloadInfo(tid,name)
+
+elif mode==206:
+        CancelDownload(tid,name)
 
 elif mode==300:
         toggleLibraryMode()
