@@ -6,12 +6,15 @@
 	<setting id="flatten-source-type" type="bool" label="30103" default="true"/>
 	<setting id="stack-multi-part" type="bool" label="30106" default="true" visible="false"/>
    </category>
-   <category label="Megaupload">
-	<setting id="megaupload-account" type="bool" label="30200" default="false"/>
-	<setting id="megaupload-username" type="text" label="30201" default="" enable="!eq(-1,false)"/>
-	<setting id="megaupload-password" type="text" label="30202" default="" option="hidden" enable="!eq(-2,false)"/>
-	<setting id="hide-successful-login-messages" type="bool" label="30203" default="false" enable="!eq(-3,false)"/>
-        <setting id="prefer-megavideo" type="bool" label="30204" default="false" visible="false"/>
+   <category label="Accounts">
+	<setting id="megaupload-account" type="bool" label="30200" default="false" visible="false"/>
+	<setting id="megaupload-username" type="text" label="30201" default="" enable="!eq(-1,false)" visible="false"/>
+	<setting id="megaupload-password" type="text" label="30202" default="" option="hidden" enable="!eq(-2,false)" visible="false"/>
+    <setting id="prefer-megavideo" type="bool" label="30204" default="false" visible="false"/>
+      <setting id="rapidshare-account" type="bool" label="30210" default="false"/>
+      <setting id="rapidshare-username" type="text" label="30211" default="" enable="!eq(-1,false)"/>
+      <setting id="rapidshare-password" type="text" label="30212" default="" option="hidden" enable="!eq(-2,false)"/>
+      	<setting id="hide-successful-login-messages" type="bool" label="30250" default="false" />
    </category>
    <category label="Downloads">
 	<setting id="download-folder" type="folder" label="30300" default=""/>

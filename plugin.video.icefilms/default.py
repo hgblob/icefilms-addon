@@ -14,7 +14,7 @@ import random
 import copy
 
 #imports of things bundled with addon
-import clean_dirs,htmlcleaner
+import clean_dirs,htmlcleaner, rapidroutines
 from xgoogle.BeautifulSoup import BeautifulSoup,BeautifulStoneSoup
 from xgoogle.search import GoogleSearch
 from mega import megaroutines
@@ -131,6 +131,8 @@ def handle_file(filename,getmode=''):
           return_file = xbmcpath(art,'megaupload.png')
      elif filename == 'shared2pic':
           return_file = xbmcpath(art,'2shared.png')
+     elif filename == 'rapidpic':
+          return_file = xbmcpath(art,'rapidshare.png')
 
      if getmode == '':
           return return_file
@@ -1351,10 +1353,13 @@ def Add_Multi_Parts(name,url,icon):
 
 
 
-def PART(scrap,sourcenumber,args,cookie,megapic,shared2pic):
+def PART(scrap,sourcenumber,args,cookie):
      #check if source exists
      sourcestring='Source #'+sourcenumber
      checkforsource = re.search(sourcestring, scrap)
+     megapic=handle_file('megapic','')
+     shared2pic=handle_file('shared2pic','')
+     rapidpic=handle_file('rapidpic','')
      
      #if source exists proceed.
      if checkforsource is not None:
@@ -1377,6 +1382,7 @@ def PART(scrap,sourcenumber,args,cookie,megapic,shared2pic):
                         # check if source is megaupload or 2shared, and add all parts as links
                         ismega = re.search('\.megaupload\.com/', url)
                         is2shared = re.search('\.2shared\.com/', url)
+                        israpid = re.search('rapidshare\.com/', url)
 
                         if ismega is not None:
                               partname='Part '+partnum
@@ -1386,6 +1392,10 @@ def PART(scrap,sourcenumber,args,cookie,megapic,shared2pic):
                               partname='Part '+partnum
                               fullname=sourcestring+' | 2S  | '+partname
                               Add_Multi_Parts(fullname,url,shared2pic)
+                        elif israpid is not None:
+                              partname='Part '+partnum
+                              fullname=sourcestring+' | RS  | '+partname
+                              Add_Multi_Parts(fullname,url,rapidpic)
 
           # if source does not have multiple parts...
           elif multiple_part is None:
@@ -1397,6 +1407,7 @@ def PART(scrap,sourcenumber,args,cookie,megapic,shared2pic):
                     url = GetSource(id, args, cookie)
                     ismega = re.search('\.megaupload\.com/', url)
                     is2shared = re.search('\.2shared\.com/', url)
+                    israpid = re.search('rapidshare\.com/', url)
                     if ismega is not None:
                          # print 'Source #'+sourcenumber+' is hosted by megaupload'
                          fullname=sourcestring+' | MU | Full'
@@ -1405,6 +1416,10 @@ def PART(scrap,sourcenumber,args,cookie,megapic,shared2pic):
                          # print 'Source #'+sourcenumber+' is hosted by 2shared' 
                          fullname=sourcestring+' | 2S  | Full'
                          addExecute(fullname,url,200,shared2pic)
+                    elif israpid is not None:
+                         #print 'Source #'+sourcenumber+' is hosted by 2shared' 
+                         fullname=sourcestring+' | RS  | Full'
+                         addExecute(fullname,url,200,rapidpic)
 
 
 def GetSource(id, args, cookie):
@@ -1426,8 +1441,6 @@ def SOURCE(page, sources):
           # check for sources containing multiple parts or just one part
           # get settings
           selfAddon = xbmcaddon.Addon(id='plugin.video.icefilms')
-          megapic=handle_file('megapic','')
-          shared2pic=handle_file('shared2pic','')
 
           # extract the ingredients used to generate the XHR request
           #
@@ -1472,7 +1485,7 @@ def SOURCE(page, sources):
           #...so it's not as CPU intensive as you might think.
 
           for thenumber in numlist:
-               PART(sources,thenumber,args,cookie,megapic,shared2pic)
+               PART(sources,thenumber,args,cookie)
 
            
 def DVDRip(url):
@@ -1679,6 +1692,9 @@ def Item_Meta(name):
 
 def do_wait(account, wait_time):
 
+     if wait_time == '0':
+         wait_time = 1
+
      if account == 'platinum':    
           return handle_wait(int(wait_time),'Megaupload','Loading video with your *Platinum* account.')
           
@@ -1726,6 +1742,7 @@ def Handle_Vidlink(url):
      #video link preflight, pays attention to settings / checks if url is mega or 2shared
      ismega = re.search('\.megaupload\.com/', url)
      is2shared = re.search('\.2shared\.com/', url)
+     israpid = re.search('rapidshare\.com/', url)
      
      if ismega is not None:
           WaitIf()
@@ -1743,6 +1760,29 @@ def Handle_Vidlink(url):
      elif is2shared is not None:
           shared2url=SHARED2_HANDLER(url)
           return shared2url
+
+     elif israpid:
+          selfAddon = xbmcaddon.Addon(id='plugin.video.icefilms')
+          account = selfAddon.getSetting('rapidshare-account')
+          if account == 'true':
+              rapiduser = selfAddon.getSetting('rapidshare-username')
+              rapidpass = selfAddon.getSetting('rapidshare-password')
+          else:
+              rapiduser = ''
+              rapidpass = ''
+              
+          rs = rapidroutines.rapidshare()
+          
+          download_details = rs.resolve_link(url, rapiduser, rapidpass)
+          
+          finished = do_wait('', download_details['wait_time'])
+
+          if finished == True:
+               download_link = [1]
+               download_link[0] = download_details['download_link']
+               return download_link
+          else:
+               return None          
 
 
 def Stream_Source(name,url):

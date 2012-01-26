@@ -7,12 +7,14 @@
     <string id="30106">Autoplay next part of source when streaming</string>
 
 
-    <!-- MEGAUPLOAD -->
     <string id="30200">Use Megaupload account</string>
     <string id="30201">    Username</string>
     <string id="30202">    Password</string>
-    <string id="30203">    Hide successful login notifications</string>
-    <string id="30204">Use Megavideo if possible (Low Quality)</string> 
+    <string id="30204">Use Megavideo if possible (Low Quality)</string>
+    <string id="30210">RapidPro account</string>
+    <string id="30211">    Username</string>
+    <string id="30212">    Password</string>
+    <string id="30250">Hide successful login notifications</string>
 
     <!-- DOWNLOADS -->
     <string id="30300">Downloads folder:</string>
