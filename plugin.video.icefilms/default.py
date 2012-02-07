@@ -1772,17 +1772,22 @@ def Handle_Vidlink(url):
               rapidpass = ''
               
           rs = rapidroutines.rapidshare()
-          
-          download_details = rs.resolve_link(url, rapiduser, rapidpass)
-          
-          finished = do_wait('', download_details['wait_time'])
+          download_details = rs.resolve_link(url, login=rapiduser, password=rapidpass)
 
-          if finished == True:
-               download_link = [1]
-               download_link[0] = download_details['download_link']
-               return download_link
+          #Check if the returned status is good, else display the returned error message
+          if download_details['status'] == '1':
+                    
+              finished = do_wait('', download_details['wait_time'])
+    
+              if finished == True:
+                   download_link = [1]
+                   download_link[0] = download_details['download_link']
+                   return download_link
+              else:
+                   return None          
           else:
-               return None          
+              Notify('big','RapidShare','Error occurred attempting to stream the file.\n' + download_details['message'],'')
+              return None
 
 
 def Stream_Source(name,url):
