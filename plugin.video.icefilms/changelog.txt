@@ -1,3 +1,6 @@
+v1.0.25 (Monday, 06 February 2012):
+  - Updated RapidShare, premium account fixed, faster api calls
+  
 v1.0.24 (Thursday, 26 January 2012):
   - Added RapidShare sources support
   
